@@ -1,0 +1,19 @@
+import torch
+import torch.nn as nn
+from torch.autograd import Variable
+
+
+class LockedDropout(nn.Module):
+    '''
+    paper: A Theoretically Grounded Application of Dropout in Recurrent Neural Networks
+    '''
+    def __init__(self):
+        super(LockedDropout, self).__init__()
+
+    def forward(self, x, dropout=0.5):
+        if not self.training or not dropout:
+            return x
+        m = x.new(1, x.size(1), x.size(2)).bernoulli_(1 - dropout)
+        mask = Variable(m.div_(1 - dropout), requires_grad=False)
+        mask = mask.expand_as(x)
+        return mask * x
